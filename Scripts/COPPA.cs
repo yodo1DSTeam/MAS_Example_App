@@ -1,7 +1,8 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Yodo1.MAS;
 
 public class COPPA : MonoBehaviour
 {
@@ -51,7 +52,7 @@ public class COPPA : MonoBehaviour
     {
      //Save user preference for YES 
         PlayerPrefs.SetInt("COPPA", 1);
-        Yodo1U3dAds.SetTagForUnderAgeOfConsent(true);
+        Yodo1U3dMas.SetCOPPA(true);
         Debug.Log("User Agree with COPPA");
         Text ConsoleText = GetComponent<AdsManager>().ConsoleText;
         ConsoleText.text = "User Agree with COPPA";
@@ -67,13 +68,13 @@ public class COPPA : MonoBehaviour
 	 //set  GPDR and CCPA to NO closing the other popups 
 	 //after that initialize the sdk with this privacy settings
         PlayerPrefs.SetInt("COPPA", 0);
-        Yodo1U3dAds.SetTagForUnderAgeOfConsent(false);
-        
+        Yodo1U3dMas.SetCOPPA(false);
+
         PlayerPrefs.SetInt("GDPR", 0);
-        Yodo1U3dAds.SetUserConsent(false);
+        Yodo1U3dMas.SetGDPR(true);
 
         PlayerPrefs.SetInt("CCPA", 0);
-        Yodo1U3dAds.SetDoNotSell(false);
+        Yodo1U3dMas.SetCCPA(false);
 
         GameObject CCPAPopup = GetComponent<CCPA>().CCPAPopup;
         Debug.Log("User Not Agree with CCPA");
@@ -90,7 +91,7 @@ public class COPPA : MonoBehaviour
         if (COPPAPopup.activeSelf)
             COPPAPopup.SetActive(false);
 
-        Yodo1U3dAds.InitializeSdk();
+        Yodo1U3dMas.InitializeSdk();
 
         ConsoleText.text = "SDK initialized, COPPA, GDPR AND CCPA NOT AGREE";
 
