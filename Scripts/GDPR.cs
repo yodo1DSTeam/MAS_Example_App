@@ -1,7 +1,8 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Yodo1.MAS;
 
 public class GDPR : MonoBehaviour
 {
@@ -48,7 +49,7 @@ public class GDPR : MonoBehaviour
     {
     //Save user preference for YES    
         PlayerPrefs.SetInt("GDPR", 1);
-        Yodo1U3dAds.SetUserConsent(true);
+        Yodo1U3dMas.SetGDPR(true);
         Debug.Log("User Agree with GDPR");
         Text ConsoleText = GetComponent<AdsManager>().ConsoleText;
         ConsoleText.text = "User Agree with GDPR";
@@ -63,7 +64,7 @@ public class GDPR : MonoBehaviour
     {
     //Save user preference for NO     
         PlayerPrefs.SetInt("GDPR", 0);
-        Yodo1U3dAds.SetUserConsent(false);
+        Yodo1U3dMas.SetGDPR(false);
         Debug.Log("User Not Agree with GDPR");
         Text ConsoleText = GetComponent<AdsManager>().ConsoleText;
         ConsoleText.text = "User Not Agree with GDPR";
