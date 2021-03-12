@@ -1,7 +1,8 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Yodo1.MAS;
 
 
 public class AdsManager : MonoBehaviour
@@ -12,41 +13,13 @@ public class AdsManager : MonoBehaviour
     public GameObject CanvasDetails;
     static int coins = 0;
    
-    //Bools for check ad status
-    bool IsCheckingVideoStatus;
-    bool IsCheckingBannerStatus;
-    bool IsCheckingInterstitialStatus;
-
+ 
     
-    // Intance of AdsManager Object
-    public static AdsManager instance;
-    private void Awake()
+      private void Start()
     {
-            CheckInstance();
-
-    }
-
-    private void CheckInstance()
-    {
-	//Prevent duplicated objects
-	   if (instance != null)
-        {
-            Destroy(CanvasDetails);
-            Destroy(this.gameObject);
-            return;
-        }
-
-        instance = this;
-        //Keep Objects for next scene
-        DontDestroyOnLoad(this.gameObject);
-        DontDestroyOnLoad(CanvasDetails);
-    }
-
-    private void Start()
-    {
-        /// Initialize MAS SDK
-		
-		// Check COPPA
+        // Initialize MAS SDK
+		// Check COPPA and avoid ask the user
+		// every time the app boot
         if (PlayerPrefs.HasKey("COPPA"))
         {
 
@@ -55,164 +28,62 @@ public class AdsManager : MonoBehaviour
         if (COPPACheck) 
         {
 
-            if (!Yodo1U3dAds.isInitialized)
-            {
-                Yodo1U3dAds.InitializeSdk();
+                Yodo1U3dMas.InitializeSdk();
                 Debug.Log("SDK initialized, COPPA AGREE");
 
                 ConsoleText.text = "SDK initialized, COPPA AGREE";
-             
-                Yodo1U3dAds.SetLogEnable(true);
-      
+                     
+				
+				//Show the events in the Scene console
                 Coinstext.text = "Coins: " + coins.ToString();
-            }
+            
         }
 
        else if(!COPPACheck)
         {
-            if (!Yodo1U3dAds.isInitialized)
-            {
-                Yodo1U3dAds.InitializeSdk();
+                Yodo1U3dMas.InitializeSdk();
                 Debug.Log("SDK initialized, COPPA NOT AGREE");
 
                 ConsoleText.text = "SDK initialized, COPPA NOT AGREE";
 
-                Yodo1U3dAds.SetLogEnable(true);
-
+              
                 Coinstext.text = "Coins: " + coins.ToString();
-            }
-
+            
         }
-        }
+       }
 
     }
 
 
     public void ShowVideoReward()
     {
-        RewaredVideoEvents();
+        
         ConsoleText.text = "Rewarded Video Ad Clicked ";
-
-        //we check the video status
-        if (!IsCheckingVideoStatus)
-            StartCoroutine(CheckVideoStatus());
+        Yodo1U3dMas.ShowRewardedAd();
+        RewardedVideoEvents();
+        
     }
 
     public void ShowBanner()
     {
-        BannerEvents();
+        
         ConsoleText.text = "Banner Ad Clicked ";
-        //we check the banner status
-        if (!IsCheckingBannerStatus)
-            StartCoroutine(CheckBannerStatus());
+        Yodo1U3dMas.ShowBannerAd();
+        BannerEvents();
+                
     }
 
     public void ShowInterstitial()
     {
-        InterstitialEvents();
+        
         ConsoleText.text = "Interstitial Ad Clicked ";
-        //we check interstitial status
-        if (!IsCheckingInterstitialStatus)
-            StartCoroutine(CheckInterstitialStatus());
+        Yodo1U3dMas.ShowInterstitialAd();
+        InterstitialEvents();
+                
     }
 
-    //Corutine for Rewarded Video callbacks
-    IEnumerator CheckVideoStatus()
-    {
-        IsCheckingVideoStatus = true;
-        bool isReady = false;// Check if the rewarded video is ready ();
-        bool isFail = false;
-        int maxDelay = 1;// max waiting time;
-        Debug.Log(isReady);
-        int currentClock = 0;
+    
 
-
-        while (!isReady && !isFail)
-        {
-            isReady = Yodo1U3dAds.VideoIsReady();
-            yield return new WaitForSeconds(1);
-            currentClock++;
-            if (currentClock >= maxDelay)
-                isFail = true;
-            ConsoleText.text = "Rewarded Video Not Ready";
-        }
-
-        //If no errors and we are ready then...
-        if (!isFail && isReady)
-        {
-            Debug.Log(isReady);
-            ConsoleText.text = "Rewarded Video Ready";
-            Yodo1U3dAds.ShowVideo();
-        }
-
-        IsCheckingVideoStatus = false;
-    }
-
-
-    //Corutine for Banner callbacks
-    IEnumerator CheckBannerStatus()
-    {
-        IsCheckingBannerStatus = true;
-        bool isReady = false;// Check if the banner is ready ();
-        bool isFail = false;
-        int maxDelay = 1;// max waiting time;
-        Debug.Log(isReady);
-        int currentClock = 0;
-
-
-        while (!isReady && !isFail)
-        {
-            isReady = Yodo1U3dAds.BannerIsReady();
-            yield return new WaitForSeconds(1);
-            currentClock++;
-            if (currentClock >= maxDelay)
-                isFail = true;
-            ConsoleText.text = "Banner Ad Not Ready";
-        }
-
-        //If no errors and we are ready then...
-        if (!isFail && isReady)
-        {
-            Debug.Log(isReady);
-            Yodo1U3dAds.SetBannerAlign(Yodo1U3dConstants.BannerAdAlign.BannerAdAlignTop
-            | Yodo1U3dConstants.BannerAdAlign.BannerAdAlignHorizontalCenter);
-            Yodo1U3dAds.ShowBanner();
-            ConsoleText.text = "Banner Ad Ready";
-        }
-
-        IsCheckingBannerStatus = false;
-    }
-
-    //Corutine for Interstitial callbacks
-    IEnumerator CheckInterstitialStatus()
-    {
-        IsCheckingInterstitialStatus = true;
-        bool isReady = false;// Check if the interstitial is ready ();
-        bool isFail = false;
-        int maxDelay = 1;// max waiting time;
-        int currentClock = 0;
-
-
-        while (!isReady && !isFail)
-        {
-            isReady = Yodo1U3dAds.InterstitialIsReady();
-            yield return new WaitForSeconds(1);
-            currentClock++;
-            if (currentClock >= maxDelay)
-                isFail = true;
-            ConsoleText.text = "Interstitial Ad Not Ready";
-        }
-
-        //If no errors and we are ready then...
-        if (!isFail && isReady)
-        {
-            Debug.Log(isReady);
-            Yodo1U3dAds.ShowInterstitial();
-            ConsoleText.text = "Interstitial Ad Ready";
-        }
-
-        IsCheckingInterstitialStatus = false;
-    }
 
     //Function for show the events in the Scene console
     public void ShowTextInConsole(string text_)
@@ -221,137 +92,81 @@ public class AdsManager : MonoBehaviour
         ConsoleText.text = (text_);
     }
 
-    // Rewarded Video Callbacks
-    public void RewaredVideoEvents()
+    
+    public void RewardedVideoEvents()
     {
-     
-		Yodo1U3dSDK.setRewardVideoDelegate((Yodo1U3dConstants.AdEvent adEvent, string error) =>
-        {
-            // Show error code in Unity Console
-            Debug.Log("RewardVideoDelegate:" + adEvent + "\n" + error);
-
-           // Check event type
+	    Yodo1U3dMas.SetRewardedAdDelegate((Yodo1U3dAdEvent adEvent, Yodo1U3dAdError error) => {
+            Debug.Log("[Yodo1 Mas] RewardVideoDelegate:" + adEvent.ToString() + "\n" + error.ToString());
             switch (adEvent)
             {
-               // Click Event
-                case Yodo1U3dConstants.AdEvent.AdEventClick:
-                    //mostramos por consola que este video fue clickeado
-                    Debug.Log("Rewarded video ad has been clicked.");
-                    ShowTextInConsole("el video fue clickeado");
-					ConsoleText.text = "Rewarded Video ad has been clicked.";
-                                      
-                break;
-
-                //Close Event
-                case Yodo1U3dConstants.AdEvent.AdEventClose:
-                    Debug.Log("Rewarded video ad has been closed.");
-                    ConsoleText.text = "Rewarded Video Closed";
+                case Yodo1U3dAdEvent.AdClosed:
+                    Debug.Log("[Yodo1 Mas] Reward video ad has been closed.");
                     break;
-
-
-                // Succes Ad Event
-                case Yodo1U3dConstants.AdEvent.AdEventShowSuccess:
-                    Debug.Log("Rewarded video ad has shown successful.");
-                    ConsoleText.text = "Rewarded Video Success";
+                case Yodo1U3dAdEvent.AdOpened:
+                    Debug.Log("[Yodo1 Mas] Reward video ad has shown successful.");
                     break;
-
-                //Failed Ad Event
-                case Yodo1U3dConstants.AdEvent.AdEventShowFail:
-                    Debug.Log("Rewarded video ad show failed, the error message:" + error);
-                    ConsoleText.text = "Rewarded Video Fail";
+                case Yodo1U3dAdEvent.AdError:
+                    Debug.Log("[Yodo1 Mas] Reward video ad error, " + error);
                     break;
-
-                // Finished Ad Event
-                // 15 Coins Reward
-                // Here you write your reward code
-                case Yodo1U3dConstants.AdEvent.AdEventFinish:
-                    Debug.Log("Rewarded video ad has been played finish, give rewards to the player.");
+                case Yodo1U3dAdEvent.AdReward:
+                    Debug.Log("[Yodo1 Mas] Reward video ad reward, give rewards to the player.");
                     coins += 15;
-					Coinstext.text = "Coins: " + coins.ToString();
+                    Coinstext.text = "Coins: " + coins.ToString();
                     ConsoleText.text = "Rewarded Video Showed with Succes \n Reward Received +15 Coins";
-                    
                     break;
             }
+
         });
+
     }
 	
 	public void BannerEvents()
 	{
-			          					
-		Yodo1U3dSDK.setBannerdDelegate((Yodo1U3dConstants.AdEvent adEvent,string error)=>
-    { 
-        //Show error code in Unity Console
-        Debug.Log ("BannerdDelegate:" + adEvent + "\n" + error); 
-        switch (adEvent) 
-          { 
-            //Click Event
-            case Yodo1U3dConstants.AdEvent.AdEventClick: 
-                Debug.Log("Banner ad has been clicked.");
-                ConsoleText.text = "Banner Ad Clicked";
-                break; 
-            //Close Event
-            case Yodo1U3dConstants.AdEvent.AdEventClose: 
-                Debug.Log("Banner ad has been closed.");
-                ConsoleText.text = "Banner Ad Closed";
-                break; 
-            // Succes Ad Event
-            // 5 Coins Reward
-            case Yodo1U3dConstants.AdEvent.AdEventShowSuccess: 
-                Debug.Log("Banner ad has been shown successful."); 
-				coins += 5;
-				Coinstext.text = "Coins: " + coins.ToString();
-                ConsoleText.text = "Banner Ad Showed with Suces \n Reward Received + 5 coins";
-               
+	        					
+        Yodo1U3dMas.SetBannerAdDelegate((Yodo1U3dAdEvent adEvent, Yodo1U3dAdError error) => {
+            Debug.Log("[Yodo1 Mas] BannerdDelegate:" + adEvent.ToString() + "\n" + error.ToString());
+            switch (adEvent)
+            {
+                case Yodo1U3dAdEvent.AdClosed:
+                    Debug.Log("[Yodo1 Mas] Banner ad has been closed.");
+                    break;
+                case Yodo1U3dAdEvent.AdOpened:
+                    Debug.Log("[Yodo1 Mas] Banner ad has been shown.");
+                    coins += 5;
+                    Coinstext.text = "Coins: " + coins.ToString();
+                    ConsoleText.text = "Banner Ad Showed with Suces \n Reward Received + 5 coins";
+                    break;
+                case Yodo1U3dAdEvent.AdError:
+                    Debug.Log("[Yodo1 Mas] Banner ad error, " + error.ToString());
+                    break;
+            }
+        });
 
-                break; 
-            //Failed Ad Event
-            case Yodo1U3dConstants.AdEvent.AdEventShowFail: 
-                Debug.Log("Banner ad has been show failed, the error message:" + error);
-                ConsoleText.text = "Banner Ad Failed";
-                break; 
-		
-        }
-});
-				
-	}
+    }
 	
 	
 	
 	public void InterstitialEvents ()
 	{
-
-		Yodo1U3dSDK.setInterstitialAdDelegate((Yodo1U3dConstants.AdEvent adEvent, string error) =>
-        {
-            Debug.Log("[Yodo1 Ads] InterstitialAdDelegate:" + adEvent + "\n" + error);
+        Yodo1U3dMas.SetInterstitialAdDelegate((Yodo1U3dAdEvent adEvent, Yodo1U3dAdError error) => {
+            Debug.Log("[Yodo1 Mas] InterstitialAdDelegate:" + adEvent.ToString() + "\n" + error.ToString());
             switch (adEvent)
             {
-                //Click Event
-                case Yodo1U3dConstants.AdEvent.AdEventClick:
-                    Debug.Log("[Yodo1 Ads] Interstital advertising has been clicked.");
-                    ConsoleText.text = "Interstitial Ad Clicked";
+                case Yodo1U3dAdEvent.AdClosed:
+                    Debug.Log("[Yodo1 Mas] Interstital ad has been closed.");
                     break;
-                //Close Event
-                case Yodo1U3dConstants.AdEvent.AdEventClose:
-                    Debug.Log("[Yodo1 Ads] Interstital advertising has been closed.");
-                    ConsoleText.text = "Interstitial Ad Closed";
-                    break;
-                //Succes Ad Event
-                //10 Coins Reward
-                case Yodo1U3dConstants.AdEvent.AdEventShowSuccess:
-                    Debug.Log("[Yodo1 Ads] Interstital advertising has been shown.");
+                case Yodo1U3dAdEvent.AdOpened:
+                    Debug.Log("[Yodo1 Mas] Interstital ad has been shown.");
                     coins += 10;
                     Coinstext.text = "Coins: " + coins.ToString();
                     ConsoleText.text = "Interstitial Ad Showed with Success \n Reward Received + 10 Coins";
-                    
                     break;
-                //Failed Ad Event
-                case Yodo1U3dConstants.AdEvent.AdEventShowFail:
-                    Debug.Log("[Yodo1 Ads] Interstital advertising show failed, the error message:" + error);
-                    ConsoleText.text = "Interstitial Ad failed";
+                case Yodo1U3dAdEvent.AdError:
+                    Debug.Log("[Yodo1 Mas] Interstital ad error, " + error.ToString());
                     break;
             }
-
         });
+
     }
 	
 }
